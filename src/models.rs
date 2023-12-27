@@ -1,8 +1,6 @@
-mod utils;
-
+use crate::utils::strip_html;
 use std::collections::{HashSet, LinkedList};
 use std::fmt;
-use utils::strip_html;
 
 #[derive(Clone, Eq, Hash, PartialEq)]
 pub struct HnItem {
@@ -47,11 +45,7 @@ impl HackerNews {
         self.items.insert(item.clone());
         self.history.push_front(item);
 
-        if self.history.len() > 100 {
-            if let Some(last_item) = self.history.pop_back() {
-                self.items.remove(&last_item);
-            }
-        }
+        self.truncate();
     }
 
     pub fn get_new_items(&mut self) -> Vec<HnItem> {
@@ -64,5 +58,13 @@ impl HackerNews {
         self.previous_items = self.items.clone();
 
         new_items
+    }
+
+    fn truncate(&mut self) {
+        if self.history.len() > 100 {
+            if let Some(last_item) = self.history.pop_back() {
+                self.items.remove(&last_item);
+            }
+        }
     }
 }

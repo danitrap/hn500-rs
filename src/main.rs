@@ -1,25 +1,31 @@
 #![deny(clippy::all)]
 
-extern crate dotenv;
-
 mod broadcast;
 mod client;
+mod config;
 mod models;
+mod utils;
 
 use broadcast::send_telegram_message;
 use client::fetch_hacker_news;
-use dotenv::dotenv;
+use config::Config;
 use models::{HackerNews, HnItem};
 use rss::Channel;
 use tokio::time::{interval, Duration};
 
 #[tokio::main]
 async fn main() {
-    dotenv().ok();
-
     let mut interval = interval(Duration::from_secs(60 * 10));
     let mut hacker_news = HackerNews::new();
-    let mut first_run = false;
+    let mut first_run = true;
+
+    let config = match Config::new() {
+        Ok(config) => config,
+        Err(e) => {
+            eprintln!("Error loading config: {}", e);
+            return;
+        }
+    };
 
     loop {
         interval.tick().await;
@@ -55,7 +61,7 @@ async fn main() {
 
         for item in new_items {
             let message = format!("{}", item);
-            send_telegram_message(message).await;
+            send_telegram_message(&config, message).await;
         }
     }
 }
