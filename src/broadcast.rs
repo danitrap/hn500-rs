@@ -1,3 +1,5 @@
+#![deny(clippy::all)]
+
 use crate::config::Config;
 use serde_json::json;
 

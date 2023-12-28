@@ -1,3 +1,5 @@
+#![deny(clippy::all)]
+
 pub fn strip_html(s: String) -> String {
     let mut in_tag = false;
     let mut result = String::new();

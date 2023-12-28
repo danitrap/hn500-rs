@@ -1,3 +1,5 @@
+#![deny(clippy::all)]
+
 extern crate dotenv;
 
 use dotenv::dotenv;

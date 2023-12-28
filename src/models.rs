@@ -1,3 +1,5 @@
+#![deny(clippy::all)]
+
 use crate::utils::strip_html;
 use std::collections::{HashSet, LinkedList};
 use std::fmt;
@@ -189,7 +191,7 @@ mod tests {
         let mut instance = HackerNews::new();
         let item = HnItem::new("title".to_string(), "snippet".to_string(), "".to_string());
         let items = vec![item.clone()];
-        let mut new_items = instance.whats_new(items);
+        let new_items = instance.whats_new(items);
 
         assert_eq!(new_items, Some(vec![Rc::new(item)]));
         assert_eq!(instance.history.len(), 1);
@@ -215,7 +217,7 @@ mod tests {
             "guid 2".to_string(),
         );
         let items2 = vec![item.clone(), item2.clone()];
-        let mut new_items2 = instance.whats_new(items2);
+        let new_items2 = instance.whats_new(items2);
 
         assert_eq!(new_items2, Some(vec![Rc::new(item2)]));
     }

@@ -1,3 +1,5 @@
+#![deny(clippy::all)]
+
 use bytes::Bytes;
 
 const HN_500_URL: &str = "https://hnrss.org/newest?points=500";
