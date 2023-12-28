@@ -1,6 +1,7 @@
 use crate::utils::strip_html;
 use std::collections::{HashSet, LinkedList};
 use std::fmt;
+use std::rc::Rc;
 
 #[derive(Clone, Eq, Hash, PartialEq, Debug)]
 pub struct HnItem {
@@ -22,14 +23,14 @@ impl fmt::Display for HnItem {
     }
 }
 
-enum AddItemResult<'a> {
-    Added(&'a HnItem),
+enum AddItemResult {
+    Added(Rc<HnItem>),
     AlreadyExists,
 }
 
 pub struct HackerNews {
-    items: HashSet<HnItem>,
-    history: LinkedList<HnItem>,
+    items: HashSet<Rc<HnItem>>,
+    history: LinkedList<Rc<HnItem>>,
 }
 
 impl HackerNews {
@@ -40,11 +41,11 @@ impl HackerNews {
         }
     }
 
-    pub fn whats_new<'a>(&mut self, items: &'a Vec<HnItem>) -> Vec<&'a HnItem> {
+    pub fn whats_new(&mut self, items: Vec<HnItem>) -> Vec<Rc<HnItem>> {
         let mut new_items = Vec::new();
 
         for item in items {
-            if let AddItemResult::Added(new_item) = self.add_item(item) {
+            if let AddItemResult::Added(new_item) = self.add_item(&item) {
                 new_items.push(new_item);
             }
         }
@@ -54,10 +55,12 @@ impl HackerNews {
         new_items
     }
 
-    fn add_item<'a>(&mut self, item: &'a HnItem) -> AddItemResult<'a> {
+    fn add_item(&mut self, item: &HnItem) -> AddItemResult {
         if self.items.contains(item) {
             return AddItemResult::AlreadyExists;
         }
+
+        let item = Rc::new(item.clone());
 
         self.items.insert(item.clone());
         self.history.push_front(item.clone());
@@ -128,7 +131,7 @@ mod tests {
             items.push(item);
         }
 
-        instance.whats_new(&items);
+        instance.whats_new(items);
 
         assert_eq!(instance.history.len(), 100);
     }
@@ -146,7 +149,7 @@ mod tests {
             items.push(item);
         }
 
-        instance.whats_new(&items);
+        instance.whats_new(items);
 
         assert_eq!(instance.history.len(), 100);
         assert_eq!(instance.history.front().unwrap().title, "title110");
@@ -158,10 +161,10 @@ mod tests {
         let mut instance = HackerNews::new();
         let item = HnItem::new("title".to_string(), "snippet".to_string());
         let items = vec![item.clone()];
-        let new_items = instance.whats_new(&items);
+        let new_items = instance.whats_new(items);
 
         assert_eq!(new_items.len(), 1);
-        assert_eq!(new_items[0], &item);
+        assert_eq!(new_items[0], Rc::new(item));
     }
 
     #[test]
@@ -170,15 +173,15 @@ mod tests {
         let item = HnItem::new("title".to_string(), "snippet".to_string());
         instance.add_item(&item);
         let items = vec![item.clone()];
-        let new_items = instance.whats_new(&items);
+        let new_items = instance.whats_new(items);
 
         assert_eq!(new_items.len(), 0);
 
         let item2 = HnItem::new("title2".to_string(), "snippet2".to_string());
         let items2 = vec![item.clone(), item2.clone()];
-        let new_items2 = instance.whats_new(&items2);
+        let new_items2 = instance.whats_new(items2);
 
         assert_eq!(new_items2.len(), 1);
-        assert_eq!(new_items2[0], &item2);
+        assert_eq!(new_items2[0], Rc::new(item2));
     }
 }
