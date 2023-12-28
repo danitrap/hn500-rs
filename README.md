@@ -17,7 +17,7 @@ Written as a learning exercise.
 
 ## TODO
 
-- [ ] Add tests
+- [x] Add tests
 - [ ] Add CI
 - [ ] Add Dockerfile
 - [ ] Add documentation

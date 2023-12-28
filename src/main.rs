@@ -44,15 +44,19 @@ async fn main() {
             continue;
         }
 
-        channel.unwrap().items().iter().for_each(|item| {
-            if let (Some(title), Some(description)) = (item.title(), item.description()) {
-                let hn_item = HnItem::new(title.to_string(), description.to_string());
+        let items = channel
+            .unwrap()
+            .items()
+            .iter()
+            .filter_map(|item| match (item.title(), item.description()) {
+                (Some(title), Some(description)) => {
+                    Some(HnItem::new(title.to_string(), description.to_string()))
+                }
+                _ => None,
+            })
+            .collect::<Vec<_>>();
 
-                hacker_news.add_item(hn_item)
-            }
-        });
-
-        let new_items = hacker_news.get_new_items();
+        let new_items = hacker_news.whats_new(&items);
 
         if first_run {
             first_run = false;
