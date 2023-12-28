@@ -1,3 +1,8 @@
+default: run
+
+run:
+	cargo run
+
 watch:
 	cargo-watch -qc -x run -x clippy
 
@@ -6,3 +11,6 @@ test:
 
 build:
 	cargo build --release
+
+clean:
+	cargo clean
