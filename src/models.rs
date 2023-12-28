@@ -1,21 +1,41 @@
 use crate::utils::strip_html;
 use std::collections::{HashSet, LinkedList};
 use std::fmt;
+use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 
-#[derive(Clone, Eq, Hash, PartialEq, Debug)]
+#[derive(Clone, Debug)]
 pub struct HnItem {
     pub title: String,
     pub snippet: String,
+    pub guid: String,
 }
 
 impl HnItem {
-    pub fn new(title: String, snippet: String) -> Self {
+    pub fn new(title: String, snippet: String, guid: String) -> Self {
         let snippet = strip_html(snippet);
 
-        Self { title, snippet }
+        Self {
+            title,
+            snippet,
+            guid,
+        }
     }
 }
+
+impl Hash for HnItem {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.guid.hash(state);
+    }
+}
+
+impl PartialEq for HnItem {
+    fn eq(&self, other: &Self) -> bool {
+        self.guid == other.guid
+    }
+}
+
+impl Eq for HnItem {}
 
 impl fmt::Display for HnItem {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -45,7 +65,7 @@ impl HackerNews {
         let mut new_items = Vec::new();
 
         for item in items {
-            if let AddItemResult::Added(new_item) = self.add_item(&item) {
+            if let AddItemResult::Added(new_item) = self.add_item(item) {
                 new_items.push(new_item);
             }
         }
@@ -55,12 +75,12 @@ impl HackerNews {
         new_items
     }
 
-    fn add_item(&mut self, item: &HnItem) -> AddItemResult {
-        if self.items.contains(item) {
+    fn add_item(&mut self, item: HnItem) -> AddItemResult {
+        if self.items.contains(&item) {
             return AddItemResult::AlreadyExists;
         }
 
-        let item = Rc::new(item.clone());
+        let item = Rc::new(item);
 
         self.items.insert(item.clone());
         self.history.push_front(item.clone());
@@ -69,18 +89,11 @@ impl HackerNews {
     }
 
     fn truncate(&mut self) {
-        let len = self.history.len();
-
-        if len <= 100 {
-            return;
-        }
-
-        let excess = len - 100;
-
-        for _ in 0..excess {
-            if let Some(item) = self.history.pop_back() {
-                self.items.remove(&item);
-            }
+        while self.history.len() > 100 {
+            match self.history.pop_back() {
+                Some(item) => self.items.remove(&item),
+                None => break,
+            };
         }
     }
 }
@@ -91,31 +104,43 @@ mod tests {
 
     #[test]
     fn it_creates_a_new_instance_of_hnitem() {
-        let instance = HnItem::new("title".to_string(), "snippet".to_string());
+        let instance = HnItem::new(
+            "title".to_string(),
+            "snippet".to_string(),
+            "guid".to_string(),
+        );
         assert_eq!(instance.title, "title");
         assert_eq!(instance.snippet, "snippet");
     }
 
     #[test]
     fn it_strips_html_from_snippet() {
-        let instance = HnItem::new("title".to_string(), "<p>snippet</p>".to_string());
+        let instance = HnItem::new(
+            "title".to_string(),
+            "<p>snippet</p>".to_string(),
+            "".to_string(),
+        );
         assert_eq!(instance.snippet, "snippet");
     }
 
     #[test]
     fn it_adds_items_to_history() {
         let mut instance = HackerNews::new();
-        let item = HnItem::new("title".to_string(), "snippet".to_string());
-        instance.add_item(&item);
+        let item = HnItem::new("title".to_string(), "snippet".to_string(), "".to_string());
+        instance.add_item(item);
         assert_eq!(instance.history.len(), 1);
     }
 
     #[test]
     fn it_does_not_add_duplicate_items_to_history() {
         let mut instance = HackerNews::new();
-        let item = HnItem::new("title".to_string(), "snippet".to_string());
-        instance.add_item(&item);
-        instance.add_item(&item);
+        let item = HnItem::new(
+            "title".to_string(),
+            "snippet".to_string(),
+            "guid".to_string(),
+        );
+        instance.add_item(item.clone());
+        instance.add_item(item);
         assert_eq!(instance.history.len(), 1);
     }
 
@@ -126,8 +151,7 @@ mod tests {
         assert_eq!(instance.history.len(), 0);
 
         for i in 0..111 {
-            let unique_title = format!("title{}", i);
-            let item = HnItem::new(unique_title, "snippet".to_string());
+            let item = HnItem::new("title".to_string(), "snippet".to_string(), i.to_string());
             items.push(item);
         }
 
@@ -144,8 +168,8 @@ mod tests {
         assert_eq!(instance.history.len(), 0);
 
         for i in 0..111 {
-            let unique_title = format!("title{}", i);
-            let item = HnItem::new(unique_title, "snippet".to_string());
+            let numbered_title = format!("title{}", i);
+            let item = HnItem::new(numbered_title, "snippet".to_string(), i.to_string());
             items.push(item);
         }
 
@@ -159,7 +183,7 @@ mod tests {
     #[test]
     fn it_returns_new_items() {
         let mut instance = HackerNews::new();
-        let item = HnItem::new("title".to_string(), "snippet".to_string());
+        let item = HnItem::new("title".to_string(), "snippet".to_string(), "".to_string());
         let items = vec![item.clone()];
         let new_items = instance.whats_new(items);
 
@@ -170,14 +194,22 @@ mod tests {
     #[test]
     fn it_does_not_return_items_that_are_already_in_history() {
         let mut instance = HackerNews::new();
-        let item = HnItem::new("title".to_string(), "snippet".to_string());
-        instance.add_item(&item);
+        let item = HnItem::new(
+            "title".to_string(),
+            "snippet".to_string(),
+            "guid".to_string(),
+        );
+        instance.add_item(item.clone());
         let items = vec![item.clone()];
         let new_items = instance.whats_new(items);
 
         assert_eq!(new_items.len(), 0);
 
-        let item2 = HnItem::new("title2".to_string(), "snippet2".to_string());
+        let item2 = HnItem::new(
+            "title2".to_string(),
+            "snippet2".to_string(),
+            "guid 2".to_string(),
+        );
         let items2 = vec![item.clone(), item2.clone()];
         let new_items2 = instance.whats_new(items2);
 

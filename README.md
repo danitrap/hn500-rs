@@ -19,6 +19,6 @@ Written as a learning exercise.
 
 - [x] Add tests
 - [x] Add CI
+- [x] Add logging
 - [ ] Add Dockerfile
 - [ ] Add documentation
-- [ ] Add logging

@@ -11,10 +11,12 @@ use client::fetch_hacker_news;
 use config::Config;
 use models::{HackerNews, HnItem};
 use rss::Channel;
+use simple_logger::SimpleLogger;
 use tokio::time::{interval, Duration};
 
 #[tokio::main]
 async fn main() {
+    SimpleLogger::new().init().unwrap();
     let mut interval = interval(Duration::from_secs(60 * 10));
     let mut hacker_news = HackerNews::new();
     let mut first_run = true;
@@ -22,7 +24,7 @@ async fn main() {
     let config = match Config::new() {
         Ok(config) => config,
         Err(e) => {
-            eprintln!("Error loading config: {}", e);
+            log::error!("Error loading config: {}", e);
             return;
         }
     };
@@ -30,17 +32,17 @@ async fn main() {
     loop {
         interval.tick().await;
 
-        println!("Fetching Hacker News");
+        log::info!("Fetching Hacker News");
 
         let content = fetch_hacker_news().await;
         if content.is_err() {
-            eprintln!("Error fetching Hacker News: {:?}", content);
+            log::error!("Error fetching Hacker News: {:?}", content);
             continue;
         }
 
         let channel = Channel::read_from(&content.unwrap()[..]);
         if channel.is_err() {
-            eprintln!("Error parsing Hacker News: {:?}", channel);
+            log::error!("Error parsing RSS: {:?}", channel);
             continue;
         }
 
@@ -48,20 +50,27 @@ async fn main() {
             .unwrap()
             .items()
             .iter()
-            .filter_map(|item| match (item.title(), item.description()) {
-                (Some(title), Some(description)) => {
-                    Some(HnItem::new(title.to_string(), description.to_string()))
-                }
-                _ => None,
-            })
+            .filter_map(
+                |item| match (item.title(), item.description(), item.guid()) {
+                    (Some(title), Some(description), Some(guid)) => Some(HnItem::new(
+                        title.to_string(),
+                        description.to_string(),
+                        guid.value.to_string(),
+                    )),
+                    _ => None,
+                },
+            )
             .collect::<Vec<_>>();
 
-        let new_items = hacker_news.whats_new(&items);
+        let new_items = hacker_news.whats_new(items);
 
         if first_run {
             first_run = false;
+            log::info!("Skipping first run");
             continue;
         }
+
+        log::info!("Sending {} new items to Telegram", new_items.len());
 
         for item in new_items {
             let message = format!("{}", item);
