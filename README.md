@@ -1,4 +1,4 @@
-# HN-500 Telegram Bot
+# Hacker News 500 Telegram Bot
 
 This is a Rust program that fetches the top 500 stories from Hacker News and
 sends them to a Telegram chat.
@@ -18,7 +18,7 @@ Written as a learning exercise.
 ## TODO
 
 - [x] Add tests
-- [ ] Add CI
+- [x] Add CI
 - [ ] Add Dockerfile
 - [ ] Add documentation
 - [ ] Add logging
