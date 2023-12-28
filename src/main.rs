@@ -70,11 +70,18 @@ async fn main() {
             continue;
         }
 
-        log::info!("Sending {} new items to Telegram", new_items.len());
-
-        for item in new_items {
-            let message = format!("{}", item);
-            send_telegram_message(&config, message).await;
+        match new_items {
+            None => {
+                log::info!("No new items");
+                continue;
+            }
+            Some(items) => {
+                log::info!("Sending {} new items to Telegram", items.len());
+                for item in items {
+                    let message = format!("{}", item);
+                    send_telegram_message(&config, message).await;
+                }
+            }
         }
     }
 }

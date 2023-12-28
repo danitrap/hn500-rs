@@ -61,7 +61,7 @@ impl HackerNews {
         }
     }
 
-    pub fn whats_new(&mut self, items: Vec<HnItem>) -> Vec<Rc<HnItem>> {
+    pub fn whats_new(&mut self, items: Vec<HnItem>) -> Option<Vec<Rc<HnItem>>> {
         let mut new_items = Vec::new();
 
         for item in items {
@@ -72,7 +72,11 @@ impl HackerNews {
 
         self.truncate();
 
-        new_items
+        if new_items.is_empty() {
+            None
+        } else {
+            Some(new_items)
+        }
     }
 
     fn add_item(&mut self, item: HnItem) -> AddItemResult {
@@ -185,10 +189,10 @@ mod tests {
         let mut instance = HackerNews::new();
         let item = HnItem::new("title".to_string(), "snippet".to_string(), "".to_string());
         let items = vec![item.clone()];
-        let new_items = instance.whats_new(items);
+        let mut new_items = instance.whats_new(items);
 
-        assert_eq!(new_items.len(), 1);
-        assert_eq!(new_items[0], Rc::new(item));
+        assert_eq!(new_items, Some(vec![Rc::new(item)]));
+        assert_eq!(instance.history.len(), 1);
     }
 
     #[test]
@@ -203,7 +207,7 @@ mod tests {
         let items = vec![item.clone()];
         let new_items = instance.whats_new(items);
 
-        assert_eq!(new_items.len(), 0);
+        assert_eq!(new_items, None);
 
         let item2 = HnItem::new(
             "title2".to_string(),
@@ -211,9 +215,8 @@ mod tests {
             "guid 2".to_string(),
         );
         let items2 = vec![item.clone(), item2.clone()];
-        let new_items2 = instance.whats_new(items2);
+        let mut new_items2 = instance.whats_new(items2);
 
-        assert_eq!(new_items2.len(), 1);
-        assert_eq!(new_items2[0], Rc::new(item2));
+        assert_eq!(new_items2, Some(vec![Rc::new(item2)]));
     }
 }
