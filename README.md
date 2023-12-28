@@ -10,8 +10,8 @@ Written as a learning exercise.
 ## Usage
 
 ```bash
-  $ export BOT_TOKEN=your_token
-  $ export CHAT_ID=your_chat_id
+  $ export TELEGRAM_BOT_TOKEN=your_token
+  $ export TELEGRAM_CHAT_ID=your_chat_id
   $ cargo run
 ```
 
