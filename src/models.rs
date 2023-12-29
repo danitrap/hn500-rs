@@ -86,8 +86,8 @@ impl HackerNews {
             true => AddItemResult::AlreadyExists,
             false => {
                 let item = Rc::new(item);
-                self.items.insert(item.clone());
-                self.history.push_front(item.clone());
+                self.items.insert(Rc::clone(&item));
+                self.history.push_front(Rc::clone(&item));
                 AddItemResult::Added(item)
             }
         }
