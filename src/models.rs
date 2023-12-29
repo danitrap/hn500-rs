@@ -64,13 +64,13 @@ impl HackerNews {
     }
 
     pub fn whats_new(&mut self, items: Vec<HnItem>) -> Option<Vec<Rc<HnItem>>> {
-        let mut new_items = Vec::new();
-
-        for item in items {
-            if let AddItemResult::Added(new_item) = self.add_item(item) {
-                new_items.push(new_item);
-            }
-        }
+        let new_items = items
+            .into_iter()
+            .filter_map(|item| match self.add_item(item) {
+                AddItemResult::Added(new_item) => Some(new_item),
+                AddItemResult::AlreadyExists => None,
+            })
+            .collect::<Vec<_>>();
 
         self.truncate();
 
