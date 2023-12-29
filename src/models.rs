@@ -66,7 +66,7 @@ impl HackerNews {
     pub fn whats_new(&mut self, items: Vec<HnItem>) -> Option<Vec<Rc<HnItem>>> {
         let new_items = items
             .into_iter()
-            .filter_map(|item| match self.add_item(item) {
+            .filter_map(|item| match self.add_item_if_not_exists(item) {
                 AddItemResult::Added(new_item) => Some(new_item),
                 AddItemResult::AlreadyExists => None,
             })
@@ -81,17 +81,16 @@ impl HackerNews {
         }
     }
 
-    fn add_item(&mut self, item: HnItem) -> AddItemResult {
-        if self.items.contains(&item) {
-            return AddItemResult::AlreadyExists;
+    fn add_item_if_not_exists(&mut self, item: HnItem) -> AddItemResult {
+        match self.items.contains(&item) {
+            true => AddItemResult::AlreadyExists,
+            false => {
+                let item = Rc::new(item);
+                self.items.insert(item.clone());
+                self.history.push_front(item.clone());
+                AddItemResult::Added(item)
+            }
         }
-
-        let item = Rc::new(item);
-
-        self.items.insert(item.clone());
-        self.history.push_front(item.clone());
-
-        AddItemResult::Added(item)
     }
 
     fn truncate(&mut self) {
@@ -133,7 +132,7 @@ mod tests {
     fn it_adds_items_to_history() {
         let mut instance = HackerNews::new();
         let item = HnItem::new("title".to_string(), "snippet".to_string(), "".to_string());
-        instance.add_item(item);
+        instance.add_item_if_not_exists(item);
         assert_eq!(instance.history.len(), 1);
     }
 
@@ -145,8 +144,8 @@ mod tests {
             "snippet".to_string(),
             "guid".to_string(),
         );
-        instance.add_item(item.clone());
-        instance.add_item(item);
+        instance.add_item_if_not_exists(item.clone());
+        instance.add_item_if_not_exists(item);
         assert_eq!(instance.history.len(), 1);
     }
 
@@ -205,7 +204,7 @@ mod tests {
             "snippet".to_string(),
             "guid".to_string(),
         );
-        instance.add_item(item.clone());
+        instance.add_item_if_not_exists(item.clone());
         let items = vec![item.clone()];
         let new_items = instance.whats_new(items);
 
