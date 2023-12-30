@@ -33,7 +33,7 @@ async fn main() {
 
         log::info!("Fetching Hacker News");
 
-        let content = setch_hacker_news().await;
+        let content = fetch_hacker_news().await;
         if content.is_err() {
             log::error!("Error fetching Hacker News: {:?}", content);
             continue;
