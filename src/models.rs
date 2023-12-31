@@ -5,6 +5,7 @@ use std::collections::{HashSet, LinkedList};
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
+use std::task::Wake;
 
 #[derive(Clone, Debug)]
 pub struct HnItem {
@@ -73,6 +74,7 @@ impl HackerNews {
             .collect::<Vec<_>>();
 
         self.truncate();
+        log::debug!("History now contains {} items", self.history.len());
 
         if new_items.is_empty() {
             None
@@ -88,7 +90,6 @@ impl HackerNews {
                 let item = Rc::new(item);
                 self.items.insert(Rc::clone(&item));
                 self.history.push_front(Rc::clone(&item));
-                log::debug!("History now contains {} items", self.history.len());
                 AddItemResult::Added(item)
             }
         }
