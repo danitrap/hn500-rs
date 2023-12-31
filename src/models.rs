@@ -88,6 +88,7 @@ impl HackerNews {
                 let item = Rc::new(item);
                 self.items.insert(Rc::clone(&item));
                 self.history.push_front(Rc::clone(&item));
+                log::debug!("History now contains {} items", self.history.len());
                 AddItemResult::Added(item)
             }
         }

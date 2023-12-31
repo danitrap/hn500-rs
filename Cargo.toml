@@ -8,9 +8,12 @@ edition = "2021"
 [dependencies]
 log = "0.4"
 simple_logger = "4.3.0"
-dotenv = "0.15.0"
+dotenv = { version = "0.15.0", optional = true }
 reqwest = { version = "0.11", features = ["json"] }
 tokio = { version = "1", features = ["full"] }
 serde_json = "1.0"
 bytes = "1.5.0"
 rss = "2.0"
+
+[features]
+dotenv = ["dep:dotenv"]

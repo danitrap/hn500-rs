@@ -1,8 +1,11 @@
 #![deny(clippy::all)]
 
+#[cfg(feature = "dotenv")]
 extern crate dotenv;
 
+#[cfg(feature = "dotenv")]
 use dotenv::dotenv;
+
 use std::env;
 use std::error::Error;
 
@@ -13,6 +16,7 @@ pub struct Config {
 
 impl Config {
     pub fn new() -> Result<Self, Box<dyn Error>> {
+        #[cfg(feature = "dotenv")]
         dotenv().ok();
         let bot_token = env::var("TELEGRAM_BOT_TOKEN")?;
         let chat_id = env::var("TELEGRAM_CHAT_ID")?;
