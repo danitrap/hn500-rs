@@ -15,7 +15,7 @@ pub struct HnItem {
 
 impl HnItem {
     pub fn new(title: String, snippet: String, guid: String) -> Self {
-        let snippet = strip_html(snippet);
+        let snippet = strip_html(&snippet);
 
         Self {
             title,

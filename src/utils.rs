@@ -1,6 +1,6 @@
 #![deny(clippy::all)]
 
-pub fn strip_html(s: String) -> String {
+pub fn strip_html(s: &str) -> String {
     let mut in_tag = false;
     let mut result = String::new();
 
@@ -24,19 +24,19 @@ mod tests {
     #[test]
     fn it_strips_html() {
         let snippet = "<p>snippet</p>".to_string();
-        assert_eq!(strip_html(snippet), "snippet");
+        assert_eq!(strip_html(&snippet), "snippet");
     }
 
     #[test]
     fn it_strips_html_with_multiple_tags() {
         let snippet = "<p><a>snippet</a></p>".to_string();
-        assert_eq!(strip_html(snippet), "snippet");
+        assert_eq!(strip_html(&snippet), "snippet");
     }
 
     #[test]
     fn it_strips_html_with_multiple_tags_and_attributes() {
         let snippet =
             "<p class=\"foo\"><a href=\"https://example.com\">snippet</a></p>".to_string();
-        assert_eq!(strip_html(snippet), "snippet");
+        assert_eq!(strip_html(&snippet), "snippet");
     }
 }

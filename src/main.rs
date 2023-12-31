@@ -19,6 +19,7 @@ async fn main() {
     SimpleLogger::new().init().unwrap();
     let mut interval = interval(Duration::from_secs(60 * 10));
     let mut hacker_news = HackerNews::new();
+    let mut first_run = true;
 
     let config = match Config::new() {
         Ok(config) => config,
@@ -62,6 +63,12 @@ async fn main() {
             .collect::<Vec<_>>();
 
         let new_items = hacker_news.whats_new(items);
+
+        if first_run {
+            first_run = false;
+            log::info!("Skipping first run");
+            continue;
+        }
 
         match new_items {
             None => {
