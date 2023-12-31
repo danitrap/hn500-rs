@@ -5,7 +5,6 @@ use std::collections::{HashSet, LinkedList};
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
-use std::task::Wake;
 
 #[derive(Clone, Debug)]
 pub struct HnItem {
