@@ -35,32 +35,35 @@ async fn main() {
         log::info!("Fetching Hacker News");
 
         let content = fetch_hacker_news().await;
-        if content.is_err() {
-            log::error!("Error fetching Hacker News: {:?}", content);
-            continue;
-        }
 
-        let channel = Channel::read_from(&content.unwrap()[..]);
-        if channel.is_err() {
-            log::error!("Error parsing RSS: {:?}", channel);
-            continue;
-        }
+        let channel = match content {
+            Ok(c) => Channel::read_from(&c[..]),
+            Err(e) => {
+                log::error!("Error fetching Hacker News: {:?}", e);
+                continue;
+            }
+        };
 
-        let items = channel
-            .unwrap()
-            .items()
-            .iter()
-            .filter_map(
-                |item| match (item.title(), item.description(), item.guid()) {
-                    (Some(title), Some(description), Some(guid)) => Some(HnItem::new(
-                        title.to_string(),
-                        description.to_string(),
-                        guid.value.to_string(),
-                    )),
-                    _ => None,
-                },
-            )
-            .collect::<Vec<_>>();
+        let items = match channel {
+            Err(err) => {
+                log::error!("Error parsing RSS: {:?}", err);
+                continue;
+            }
+            Ok(channel) => channel
+                .items()
+                .iter()
+                .filter_map(
+                    |item| match (item.title(), item.description(), item.guid()) {
+                        (Some(title), Some(description), Some(guid)) => Some(HnItem::new(
+                            title.to_string(),
+                            description.to_string(),
+                            guid.value.to_string(),
+                        )),
+                        _ => None,
+                    },
+                )
+                .collect::<Vec<_>>(),
+        };
 
         let new_items = hacker_news.whats_new(items);
 
