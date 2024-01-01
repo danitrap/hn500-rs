@@ -6,6 +6,13 @@ use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 
+pub enum ApplicationError {
+    Fetching,
+    Parsing,
+    SkippingFirstRun,
+    NoNewItems,
+}
+
 #[derive(Clone, Debug)]
 pub struct HnItem {
     pub title: String,

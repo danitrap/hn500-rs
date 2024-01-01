@@ -9,7 +9,7 @@ mod utils;
 use broadcast::send_telegram_message;
 use client::fetch_hacker_news;
 use config::Config;
-use models::{HackerNews, HnItem};
+use models::{ApplicationError, ApplicationError::*, HackerNews, HnItem};
 use rss::Channel;
 use simple_logger::SimpleLogger;
 use tokio::time::{interval, Duration};
@@ -34,57 +34,50 @@ async fn main() {
 
         log::info!("Fetching Hacker News");
 
-        let content = fetch_hacker_news().await;
+        let items: Result<_, ApplicationError> = fetch_hacker_news()
+            .await
+            .map_err(|_| Fetching)
+            .and_then(|res| Channel::read_from(&res[..]).map_err(|_| Parsing))
+            .map(|channel| {
+                channel
+                    .items()
+                    .iter()
+                    .filter_map(
+                        |item| match (item.title(), item.description(), item.guid()) {
+                            (Some(title), Some(description), Some(guid)) => Some(HnItem::new(
+                                title.to_string(),
+                                description.to_string(),
+                                guid.value.to_string(),
+                            )),
+                            _ => None,
+                        },
+                    )
+                    .collect::<Vec<_>>()
+            })
+            .and_then(|items| hacker_news.whats_new(items).ok_or(NoNewItems))
+            .and_then(|items| {
+                if first_run {
+                    Err(SkippingFirstRun)
+                } else {
+                    Ok(items)
+                }
+            });
 
-        let channel = match content {
-            Ok(c) => Channel::read_from(&c[..]),
-            Err(e) => {
-                log::error!("Error fetching Hacker News: {:?}", e);
-                continue;
+        match items {
+            Err(Fetching) => log::error!("Error fetching Hacker News"),
+            Err(Parsing) => log::error!("Error parsing RSS"),
+            Err(SkippingFirstRun) => {
+                log::info!("Skipping first run");
+                first_run = false;
             }
-        };
-
-        let items = match channel {
-            Err(err) => {
-                log::error!("Error parsing RSS: {:?}", err);
-                continue;
-            }
-            Ok(channel) => channel
-                .items()
-                .iter()
-                .filter_map(
-                    |item| match (item.title(), item.description(), item.guid()) {
-                        (Some(title), Some(description), Some(guid)) => Some(HnItem::new(
-                            title.to_string(),
-                            description.to_string(),
-                            guid.value.to_string(),
-                        )),
-                        _ => None,
-                    },
-                )
-                .collect::<Vec<_>>(),
-        };
-
-        let new_items = hacker_news.whats_new(items);
-
-        if first_run {
-            first_run = false;
-            log::info!("Skipping first run");
-            continue;
-        }
-
-        match new_items {
-            None => {
-                log::info!("No new items");
-                continue;
-            }
-            Some(items) => {
+            Err(NoNewItems) => log::info!("No new items"),
+            Ok(items) => {
                 log::info!("Sending {} new items to Telegram", items.len());
                 for item in items {
                     let message = format!("{}", item);
                     send_telegram_message(&config, message).await;
                 }
             }
-        }
+        };
     }
 }
