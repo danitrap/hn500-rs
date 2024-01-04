@@ -20,21 +20,8 @@ pub struct HnItem {
     pub guid: String,
 }
 
-pub trait OptionalHnItem {
-    fn title(&self) -> Option<&str>;
-    fn description(&self) -> Option<&str>;
-    fn guid(&self) -> Option<&str>;
-}
-
 impl HnItem {
-    pub fn from_optional_item(item: &impl OptionalHnItem) -> Option<Self> {
-        let title = item.title()?;
-        let description = item.description()?;
-        let guid = item.guid()?;
-        Some(Self::new(title, description, guid))
-    }
-
-    fn new(title: &str, snippet: &str, guid: &str) -> Self {
+    pub fn new(title: &str, snippet: &str, guid: &str) -> Self {
         let snippet = strip_html(snippet);
 
         Self {
