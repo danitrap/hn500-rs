@@ -3,28 +3,18 @@
 mod broadcast;
 mod client;
 mod config;
+mod conversions;
 mod models;
 mod utils;
 
 use broadcast::send_telegram_message;
 use client::fetch_hacker_news;
 use config::Config;
-use models::{ApplicationError, ApplicationError::*, HackerNews, HnItem};
+use conversions::ConvertibleToHnItem;
+use models::{ApplicationError, ApplicationError::*, HackerNews};
 use rss::Channel;
 use simple_logger::SimpleLogger;
 use tokio::time::{interval, Duration};
-
-impl TryFrom<&rss::Item> for HnItem {
-    type Error = &'static str;
-
-    fn try_from(item: &rss::Item) -> Result<Self, Self::Error> {
-        let title = item.title().ok_or("Missing title")?;
-        let description = item.description().ok_or("Missing description")?;
-        let guid = item.guid().ok_or("Missing guid")?.value().to_owned();
-
-        Ok(Self::new(title, description, &guid))
-    }
-}
 
 #[tokio::main]
 async fn main() {
@@ -54,7 +44,7 @@ async fn main() {
                 channel
                     .items()
                     .iter()
-                    .filter_map(|item| HnItem::try_from(item).ok())
+                    .filter_map(|item| item.convert_to_hn_item())
                     .collect::<Vec<_>>()
             })
             .and_then(|items| hacker_news.whats_new(items).ok_or(NoNewItems))
