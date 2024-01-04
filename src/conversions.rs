@@ -1,4 +1,5 @@
 use crate::models::HnItem;
+
 pub trait ConvertibleToHnItem {
     fn convert_to_hn_item(&self) -> Option<HnItem>;
 }
