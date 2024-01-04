@@ -9,10 +9,22 @@ mod utils;
 use broadcast::send_telegram_message;
 use client::fetch_hacker_news;
 use config::Config;
-use models::{ApplicationError, ApplicationError::*, HackerNews, HnItem};
+use models::{ApplicationError, ApplicationError::*, HackerNews, HnItem, OptionalHnItem};
 use rss::Channel;
 use simple_logger::SimpleLogger;
 use tokio::time::{interval, Duration};
+
+impl OptionalHnItem for rss::Item {
+    fn title(&self) -> Option<&str> {
+        self.title()
+    }
+    fn description(&self) -> Option<&str> {
+        self.description()
+    }
+    fn guid(&self) -> Option<&str> {
+        self.guid().map(|guid| guid.value())
+    }
+}
 
 #[tokio::main]
 async fn main() {
@@ -42,16 +54,7 @@ async fn main() {
                 channel
                     .items()
                     .iter()
-                    .filter_map(
-                        |item| match (item.title(), item.description(), item.guid()) {
-                            (Some(title), Some(description), Some(guid)) => Some(HnItem::new(
-                                title.to_string(),
-                                description.to_string(),
-                                guid.value.to_string(),
-                            )),
-                            _ => None,
-                        },
-                    )
+                    .filter_map(HnItem::from_optional_item)
                     .collect::<Vec<_>>()
             })
             .and_then(|items| hacker_news.whats_new(items).ok_or(NoNewItems))

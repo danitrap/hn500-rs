@@ -20,14 +20,27 @@ pub struct HnItem {
     pub guid: String,
 }
 
+pub trait OptionalHnItem {
+    fn title(&self) -> Option<&str>;
+    fn description(&self) -> Option<&str>;
+    fn guid(&self) -> Option<&str>;
+}
+
 impl HnItem {
-    pub fn new(title: String, snippet: String, guid: String) -> Self {
-        let snippet = strip_html(&snippet);
+    pub fn from_optional_item(item: &impl OptionalHnItem) -> Option<Self> {
+        let title = item.title()?;
+        let description = item.description()?;
+        let guid = item.guid()?;
+        Some(Self::new(title, description, guid))
+    }
+
+    fn new(title: &str, snippet: &str, guid: &str) -> Self {
+        let snippet = strip_html(snippet);
 
         Self {
-            title,
+            title: title.into(),
             snippet,
-            guid,
+            guid: guid.into(),
         }
     }
 }
@@ -117,29 +130,21 @@ mod tests {
 
     #[test]
     fn it_creates_a_new_instance_of_hnitem() {
-        let instance = HnItem::new(
-            "title".to_string(),
-            "snippet".to_string(),
-            "guid".to_string(),
-        );
+        let instance = HnItem::new("title", "snippet", "guid");
         assert_eq!(instance.title, "title");
         assert_eq!(instance.snippet, "snippet");
     }
 
     #[test]
     fn it_strips_html_from_snippet() {
-        let instance = HnItem::new(
-            "title".to_string(),
-            "<p>snippet</p>".to_string(),
-            "".to_string(),
-        );
+        let instance = HnItem::new("title", "<p>snippet</p>", "");
         assert_eq!(instance.snippet, "snippet");
     }
 
     #[test]
     fn it_adds_items_to_history() {
         let mut instance = HackerNews::new();
-        let item = HnItem::new("title".to_string(), "snippet".to_string(), "".to_string());
+        let item = HnItem::new("title", "snippet", "");
         instance.add_item_if_not_exists(item);
         assert_eq!(instance.history.len(), 1);
     }
@@ -147,11 +152,7 @@ mod tests {
     #[test]
     fn it_does_not_add_duplicate_items_to_history() {
         let mut instance = HackerNews::new();
-        let item = HnItem::new(
-            "title".to_string(),
-            "snippet".to_string(),
-            "guid".to_string(),
-        );
+        let item = HnItem::new("title", "snippet", "guid");
         instance.add_item_if_not_exists(item.clone());
         instance.add_item_if_not_exists(item);
         assert_eq!(instance.history.len(), 1);
@@ -164,7 +165,7 @@ mod tests {
         assert_eq!(instance.history.len(), 0);
 
         for i in 0..111 {
-            let item = HnItem::new("title".to_string(), "snippet".to_string(), i.to_string());
+            let item = HnItem::new("title", "snippet", &i.to_string());
             items.push(item);
         }
 
@@ -182,7 +183,7 @@ mod tests {
 
         for i in 0..111 {
             let numbered_title = format!("title{}", i);
-            let item = HnItem::new(numbered_title, "snippet".to_string(), i.to_string());
+            let item = HnItem::new(&numbered_title, "snippet", &i.to_string());
             items.push(item);
         }
 
@@ -196,7 +197,7 @@ mod tests {
     #[test]
     fn it_returns_new_items() {
         let mut instance = HackerNews::new();
-        let item = HnItem::new("title".to_string(), "snippet".to_string(), "".to_string());
+        let item = HnItem::new("title", "snippet", "");
         let items = vec![item.clone()];
         let new_items = instance.whats_new(items);
 
@@ -207,22 +208,14 @@ mod tests {
     #[test]
     fn it_does_not_return_items_that_are_already_in_history() {
         let mut instance = HackerNews::new();
-        let item = HnItem::new(
-            "title".to_string(),
-            "snippet".to_string(),
-            "guid".to_string(),
-        );
+        let item = HnItem::new("title", "snippet", "guid");
         instance.add_item_if_not_exists(item.clone());
         let items = vec![item.clone()];
         let new_items = instance.whats_new(items);
 
         assert_eq!(new_items, None);
 
-        let item2 = HnItem::new(
-            "title2".to_string(),
-            "snippet2".to_string(),
-            "guid 2".to_string(),
-        );
+        let item2 = HnItem::new("title2", "snippet2", "guid 2");
         let items2 = vec![item.clone(), item2.clone()];
         let new_items2 = instance.whats_new(items2);
 
