@@ -3,7 +3,7 @@
 use crate::config::Config;
 use serde_json::json;
 
-pub async fn send_telegram_message(config: &Config, message: String) {
+pub async fn send_telegram_message(config: &Config, message: &str) {
     let client = reqwest::Client::new();
     let _res = client
         .post(&format!(

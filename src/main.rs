@@ -68,7 +68,7 @@ async fn main() {
                 log::info!("Sending {} new items to Telegram", items.len());
                 for item in items {
                     let message = format!("{}", item);
-                    send_telegram_message(&config, message).await;
+                    send_telegram_message(&config, &message).await;
                 }
             }
         };
