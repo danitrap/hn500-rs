@@ -22,8 +22,15 @@ RUN cargo build --release
 # our final base
 FROM rust:1.75-buster as run
 
+# create a non-root user
+RUN useradd -m appuser
+
 # copy the build artifact from the build stage
 COPY --from=build /hn500-rs/target/release/hn500-rs .
+RUN chown appuser:appuser ./hn500-rs
+
+# switch to non-root user
+USER appuser
 
 # set the startup command to run your binary
 CMD ["./hn500-rs"]
