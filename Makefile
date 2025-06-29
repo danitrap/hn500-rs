@@ -9,6 +9,16 @@ watch:
 test:
 	cargo-watch -qc -x test
 
+test-ci:
+	cargo test
+
+gemini-test:
+	cargo test
+	$(MAKE) test-docker
+
+test-docker:
+	./scripts/test_docker_build.sh
+
 build:
 	cargo build --release
 

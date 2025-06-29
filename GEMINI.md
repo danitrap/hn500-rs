@@ -17,6 +17,8 @@
 *   **Explanation of Critical Commands:** Before executing any `run_shell_command` that modifies the filesystem or system state, I will provide a brief explanation of its purpose and potential impact.
 *   **Parallel Execution:** I will utilize parallel tool calls when independent operations can be performed concurrently.
 *   **Non-Interactive Commands:** I will prefer non-interactive versions of shell commands where available.
+*   **Testing Docker Builds:** To test Docker builds, I will use `make test-docker`.
+*   **Running All Tests:** To run all unit and integration tests, I will use `make gemini-test`.
 
 **IV. Git Workflow and Commit Practices**
 *   **Pre-Commit Review:** Before proposing a commit, I will always run `git status` and `git diff HEAD` (or `git diff --staged` for partial commits) to review all changes.
