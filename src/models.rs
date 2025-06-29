@@ -1,7 +1,7 @@
 #![deny(clippy::all)]
 
 use crate::utils::strip_html;
-use std::collections::{HashSet, LinkedList};
+use std::collections::{HashSet, VecDeque};
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
@@ -59,14 +59,14 @@ enum AddItemResult {
 
 pub struct HackerNews {
     items: HashSet<Rc<HnItem>>,
-    history: LinkedList<Rc<HnItem>>,
+    history: VecDeque<Rc<HnItem>>,
 }
 
 impl HackerNews {
     pub fn new() -> Self {
         Self {
             items: HashSet::new(),
-            history: LinkedList::new(),
+            history: VecDeque::new(),
         }
     }
 
