@@ -24,6 +24,7 @@ async fn main() {
     let mut interval = interval(Duration::from_secs(60 * 10));
     let mut hacker_news = HackerNews::new();
     let mut first_run = true;
+    let client = reqwest::Client::new();
 
     let config = match Config::new() {
         Ok(config) => config,
@@ -38,7 +39,7 @@ async fn main() {
 
         log::info!("Fetching Hacker News");
 
-        let items: Result<_, ApplicationError> = fetch_hacker_news()
+        let items: Result<_, ApplicationError> = fetch_hacker_news(&client)
             .await
             .map_err(|_| Fetching)
             .and_then(|res| Channel::read_from(&res[..]).map_err(|_| Parsing))
@@ -70,7 +71,7 @@ async fn main() {
                 log::info!("Sending {} new items to Telegram", items.len());
                 for item in items {
                     let message = format!("{}", item);
-                    send_telegram_message(&config, &message).await;
+                    send_telegram_message(&client, &config, &message).await;
                 }
             }
         };

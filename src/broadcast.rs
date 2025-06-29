@@ -6,8 +6,7 @@ use crate::config::Config;
 use serde_json::json;
 
 /// Sends a message to the Telegram chat.
-pub async fn send_telegram_message(config: &Config, message: &str) {
-    let client = reqwest::Client::new();
+pub async fn send_telegram_message(client: &reqwest::Client, config: &Config, message: &str) {
     let _res = client
         .post(&format!(
             "https://api.telegram.org/bot{}/sendMessage",
