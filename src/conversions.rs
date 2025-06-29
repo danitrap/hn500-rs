@@ -1,6 +1,10 @@
+//! This module contains the logic for converting between different data models.
+
 use crate::models::HnItem;
 
+/// A trait for converting an object to an `HnItem`.
 pub trait ConvertibleToHnItem {
+    /// Converts the object to an `HnItem`.
     fn convert_to_hn_item(&self) -> Option<HnItem>;
 }
 

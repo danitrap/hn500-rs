@@ -1,5 +1,8 @@
+//! This module contains utility functions.
+
 #![deny(clippy::all)]
 
+/// Strips HTML tags from a string.
 pub fn strip_html(s: &str) -> String {
     let mut in_tag = false;
     let mut result = String::new();

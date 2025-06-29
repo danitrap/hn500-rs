@@ -1,8 +1,11 @@
+//! This module is responsible for sending messages to the Telegram chat.
+
 #![deny(clippy::all)]
 
 use crate::config::Config;
 use serde_json::json;
 
+/// Sends a message to the Telegram chat.
 pub async fn send_telegram_message(config: &Config, message: &str) {
     let client = reqwest::Client::new();
     let _res = client

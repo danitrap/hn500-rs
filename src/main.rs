@@ -1,3 +1,5 @@
+//! This is the entry point of the application.
+
 #![deny(clippy::all)]
 
 mod broadcast;

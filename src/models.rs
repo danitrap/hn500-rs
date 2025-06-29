@@ -1,3 +1,5 @@
+//! This module contains the data models for the application.
+
 #![deny(clippy::all)]
 
 use crate::utils::strip_html;
@@ -6,21 +8,31 @@ use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 
+/// Represents the possible errors that can occur in the application.
 pub enum ApplicationError {
+    /// An error occurred while fetching the Hacker News feed.
     Fetching,
+    /// An error occurred while parsing the Hacker News feed.
     Parsing,
+    /// The first run of the application is being skipped.
     SkippingFirstRun,
+    /// There are no new items in the Hacker News feed.
     NoNewItems,
 }
 
+/// Represents a Hacker News item.
 #[derive(Clone, Debug)]
 pub struct HnItem {
+    /// The title of the item.
     pub title: String,
+    /// The snippet of the item.
     pub snippet: String,
+    /// The GUID of the item.
     pub guid: String,
 }
 
 impl HnItem {
+    /// Creates a new `HnItem` instance.
     pub fn new(title: &str, snippet: &str, guid: &str) -> Self {
         let snippet = strip_html(snippet);
 
@@ -57,12 +69,14 @@ enum AddItemResult {
     AlreadyExists,
 }
 
+/// Represents the Hacker News feed.
 pub struct HackerNews {
     items: HashSet<Rc<HnItem>>,
     history: VecDeque<Rc<HnItem>>,
 }
 
 impl HackerNews {
+    /// Creates a new `HackerNews` instance.
     pub fn new() -> Self {
         Self {
             items: HashSet::new(),
@@ -70,6 +84,7 @@ impl HackerNews {
         }
     }
 
+    /// Returns the new items in the feed.
     pub fn whats_new(&mut self, items: Vec<HnItem>) -> Option<Vec<Rc<HnItem>>> {
         let new_items = items
             .into_iter()
