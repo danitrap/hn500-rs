@@ -1,4 +1,4 @@
-FROM rust:1.75-buster as build
+FROM rust:1.78-buster as build
 
 # create a new empty shell project
 RUN USER=root cargo new --bin hn500-rs
@@ -20,7 +20,7 @@ RUN rm ./target/release/deps/hn500*
 RUN cargo build --release
 
 # our final base
-FROM rust:1.75-buster as run
+FROM rust:1.78-buster as run
 
 # create a non-root user
 RUN useradd -m appuser
