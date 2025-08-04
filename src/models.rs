@@ -174,6 +174,8 @@ mod tests {
         instance.whats_new(items);
 
         assert_eq!(instance.history.len(), 100);
+        assert_eq!(instance.items.len(), 100);
+        assert!(!instance.items.iter().any(|item| item.guid == "0"));
     }
 
     #[test]
