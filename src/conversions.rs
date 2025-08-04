@@ -26,13 +26,13 @@ mod tests {
         let mut guid = rss::Guid::default();
         rss_item.set_title("title".to_string());
         rss_item.set_description("snippet".to_string());
-        guid.set_value("00000000-0000-0000-0000-00000000000");
+        guid.set_value("00000000-0000-0000-0000-000000000000");
         rss_item.set_guid(guid);
 
         let hn_item = rss_item.convert_to_hn_item().unwrap();
         assert_eq!(hn_item.title, "title");
         assert_eq!(hn_item.snippet, "snippet");
-        assert_eq!(hn_item.guid, "00000000-0000-0000-0000-00000000000");
+        assert_eq!(hn_item.guid, "00000000-0000-0000-0000-000000000000");
     }
 
     #[test]
@@ -40,7 +40,7 @@ mod tests {
         let mut rss_item = rss::Item::default();
         let mut guid = rss::Guid::default();
         rss_item.set_title("title".to_string());
-        guid.set_value("00000000-0000-0000-0000-00000000000");
+        guid.set_value("00000000-0000-0000-0000-000000000000");
         rss_item.set_guid(guid);
         let hn_item = rss_item.convert_to_hn_item();
         assert_eq!(hn_item, None);
