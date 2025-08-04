@@ -8,12 +8,11 @@ pub fn strip_html(s: &str) -> String {
     let mut result = String::new();
 
     for c in s.chars() {
-        if c == '<' {
-            in_tag = true;
-        } else if c == '>' {
-            in_tag = false;
-        } else if !in_tag {
-            result.push(c);
+        match c {
+            '<' => in_tag = true,
+            '>' if in_tag => in_tag = false,
+            _ if !in_tag => result.push(c),
+            _ => {}
         }
     }
 
@@ -41,5 +40,11 @@ mod tests {
         let snippet =
             "<p class=\"foo\"><a href=\"https://example.com\">snippet</a></p>".to_string();
         assert_eq!(strip_html(&snippet), "snippet");
+    }
+
+    #[test]
+    fn it_keeps_greater_than_characters_outside_tags() {
+        let snippet = "1 > 2".to_string();
+        assert_eq!(strip_html(&snippet), "1 > 2");
     }
 }
