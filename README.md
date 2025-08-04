@@ -1,6 +1,6 @@
 # Hacker News 500 Telegram Bot
 
-This is a Rust program that fetches the top 500 stories from Hacker News and
+This is a Rust program that fetches the newest stories with at least 500 points from Hacker News and
 sends them to a Telegram chat.
 
 It deduplicates the stories and only sends the new ones.
@@ -38,7 +38,7 @@ The following environment variables are used to configure the bot:
 The project is structured as follows:
 
 *   `src/main.rs`: The entry point of the application.
-*   `src/client.rs`: Handles fetching the top 500 stories from Hacker News.
+*   `src/client.rs`: Handles fetching the newest stories with at least 500 points from Hacker News.
 *   `src/broadcast.rs`: Handles sending the stories to the Telegram chat.
 *   `src/config.rs`: Handles loading the configuration from the environment.
 *   `src/models.rs`: Contains the data models for the Hacker News stories.
