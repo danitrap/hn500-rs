@@ -6,6 +6,9 @@ run:
 watch:
 	cargo-watch -qc -x "run --features=dotenv" -x clippy
 
+lint:
+	cargo clippy
+
 test:
 	cargo-watch -qc -x test
 
